@@ -14,6 +14,7 @@ export default function App() {
     {
       id: '1',
       title: 'My Website',
+      description: 'This is my personal website.',
       buttons: [
         { label: 'Home', url: 'https://www.mywebsite.com' },
         { label: 'Contact', url: 'https://www.mywebsite.com/contact' },
@@ -22,6 +23,7 @@ export default function App() {
     {
       id: '2',
       title: 'LinkedIn Profile',
+      description: 'Connect with me on LinkedIn.',
       buttons: [
         { label: 'LinkedIn', url: 'https://www.linkedin.com/in/myprofile' },
       ],
@@ -47,16 +49,40 @@ export default function App() {
       return card;
     }));
   };
-  
 
-  const addCard = (newCard) => {
-    setCards([...cards, { ...newCard, id: (cards.length + 1).toString() }]);
+  const deleteButtonInCard = (cardId, buttonIndex) => {
+    setCards(cards.map(card => {
+      if (card.id === cardId) {
+        const updatedButtons = card.buttons.filter((_, index) => index !== buttonIndex);
+        return { ...card, buttons: updatedButtons };
+      }
+      return card;
+    }));
   };
 
+  const incrementScanCount = (cardId, buttonIndex) => {
+    setCards(cards.map(card => {
+      if (card.id === cardId) {
+        const updatedButtons = card.buttons.map((button, index) => {
+          if (index === buttonIndex) {
+            return { ...button, scanCount: (button.scanCount || 0) + 1 };
+          }
+          return button;
+        });
+        return { ...card, buttons: updatedButtons };
+      }
+      return card;
+    }));
+  };
+
+  const addCard = (newCard) => {
+    setCards([...cards, { ...newCard, id: (cards.length + 1).toString(), description: newCard.description }]);
+  };
+  
   const editCard = (editedCard) => {
     setCards(cards.map(card =>
       card.id === editedCard.id
-        ? editedCard
+        ? { ...card, title: editedCard.title, description: editedCard.description }
         : card
     ));
   };
@@ -84,6 +110,8 @@ export default function App() {
               {...props}
               onAddButton={addButtonToCard}
               onEditButton={editButtonInCard}
+              onDeleteButton={deleteButtonInCard}
+              onIncrementScanCount={incrementScanCount} // Pass the scan counter increment function
               cards={cards}
             />
           )}
@@ -98,7 +126,14 @@ export default function App() {
             <AddCardScreen {...props} onAddCard={addCard} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="QRCode" component={QRCodeScreen} />
+        <Stack.Screen name="QRCode">
+          {props => (
+            <QRCodeScreen
+              {...props}
+              onIncrementScanCount={incrementScanCount} // Pass the scan counter increment function
+            />
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
