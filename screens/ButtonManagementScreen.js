@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Modal, TextInput, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 export default function ButtonManagementScreen({ route, navigation, cards, onDeleteButton, onEditButton, onReorderButton }) {
   const { cardId } = route.params;
@@ -104,23 +106,34 @@ export default function ButtonManagementScreen({ route, navigation, cards, onDel
       {/* Modal for Editing Button */}
       <Modal
         visible={isModalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
+        <BlurView intensity={100} style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            {/* Close Icon */}
+            <TouchableOpacity
+              style={styles.closeIcon}
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+
             <Text style={styles.modalTitle}>Edit Button</Text>
             <TextInput
               style={styles.input}
               value={newLabel}
               onChangeText={setNewLabel}
               placeholder="Enter new label"
+              placeholderTextColor="#777"
             />
             <TextInput
               style={styles.input}
               value={newUrl}
               onChangeText={setNewUrl}
               placeholder="Enter new URL"
+              placeholderTextColor="#777"
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -131,7 +144,7 @@ export default function ButtonManagementScreen({ route, navigation, cards, onDel
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </BlurView>
       </Modal>
     </View>
   );
@@ -195,25 +208,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: 300,
     padding: 20,
+    paddingTop: 40,
     backgroundColor: '#fff',
     borderRadius: 10,
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   modalTitle: {
     fontSize: 18,
     marginBottom: 10,
     color: '#181818',
+    textAlign: 'center',
   },
   input: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
+    borderRadius: 6,
     marginBottom: 20,
     paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    color: '#181818',
   },
   modalButtons: {
     flexDirection: 'row',
