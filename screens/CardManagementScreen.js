@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   card: {
     padding: 15,
     backgroundColor: '#fff',
-    borderRadius: 6,
+    borderRadius: 8,
     marginBottom: 10,
   },
   cardTitle: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   qrButton: {
     padding: 10,
-    borderRadius: 6,
+    borderRadius: 8,
     backgroundColor: '#0A0A0A',
     borderColor: '#0A0A0A',
     borderWidth: 1,
@@ -182,9 +182,12 @@ const styles = StyleSheet.create({
   },
   qrButtonText: {
     color: '#f3f5f7',
+    fontSize: 16,
   },
   disabledButton: {
     opacity: 0.7,
+    paddingVertical: 13,
+    paddingHorizontal: 23,
   },
   buttonActions: {
     flexDirection: 'row',
@@ -192,8 +195,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   actionButton: {
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 23,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#0A0A0A',
     backgroundColor: '#fff',
@@ -202,7 +206,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#0A0A0A',
-    fontSize: 14,
+    fontSize: 16,
   },
   reorderActions: {
     flexDirection: 'row',
@@ -236,13 +240,14 @@ const styles = StyleSheet.create({
     color: '#181818',
   },
   input: {
-    height: 40, // Set the height for both title and description
+    height: 50, // Set the height for both title and description
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     paddingLeft: 10,
     marginBottom: 20,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
   modalButtons: {
     flexDirection: 'row',

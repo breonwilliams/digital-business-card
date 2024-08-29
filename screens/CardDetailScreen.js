@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Modal } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Modal, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { BlurView } from 'expo-blur';
@@ -41,6 +41,22 @@ export default function CardDetailScreen({ route, navigation, cards }) {
     setQRModalVisible(true);
   };
 
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Check out this link: ${qrUrl}`,
+        url: qrUrl,
+        title: qrLabel,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   if (!card) {
     return (
       <View style={styles.container}>
@@ -51,24 +67,45 @@ export default function CardDetailScreen({ route, navigation, cards }) {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search buttons..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-      <FlatList
-        data={filteredButtons}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.qrButton}
-            onPress={() => handleViewQRCode(item.url, item.label)}
-          >
-            <Text style={styles.qrButtonText}>{item.label}</Text>
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#777777" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search buttons..."
+          placeholderTextColor="#777777"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={clearSearch} style={styles.clearIcon}>
+            <Ionicons name="close-circle" size={20} color="#777777" />
           </TouchableOpacity>
         )}
-      />
+      </View>
+
+      {filteredButtons.length === 0 ? (
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>
+            Tap the '+' button to add your first button.
+          </Text>
+          <Text style={styles.placeholderText}>
+            This is where your buttons will be organized.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredButtons}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.qrButton}
+              onPress={() => handleViewQRCode(item.url, item.label)}
+            >
+              <Text style={styles.qrButtonText}>{item.label}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
 
       {/* Add New Button Floating Button */}
       <TouchableOpacity
@@ -87,6 +124,14 @@ export default function CardDetailScreen({ route, navigation, cards }) {
       >
         <BlurView intensity={100} style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            {/* Share Icon */}
+            <TouchableOpacity
+              style={styles.shareIcon}
+              onPress={handleShare}
+            >
+              <Ionicons name="share-outline" size={24} color="#000" />
+            </TouchableOpacity>
+
             {/* Close Icon */}
             <TouchableOpacity
               style={styles.closeIcon}
@@ -110,18 +155,46 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f3f5f7',
   },
-  searchBar: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingLeft: 10,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
     backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  searchIcon: {
+    paddingLeft: 10,
+    paddingRight: 5,
+  },
+  clearIcon: {
+    position: 'absolute',
+    right: 10,
+  },
+  searchBar: {
+    flex: 1,
+    height: 50,
+    paddingLeft: 10,
+    paddingRight: 35, // Adjust padding to make room for the clear icon
+    color: '#181818',
+    fontSize: 16,
+  },
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#777777',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   qrButton: {
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 23,
+    borderRadius: 8,
     backgroundColor: '#0A0A0A',
     borderColor: '#0A0A0A',
     borderWidth: 1,
@@ -130,6 +203,7 @@ const styles = StyleSheet.create({
   },
   qrButtonText: {
     color: '#f3f5f7',
+    fontSize: 16,
   },
   errorText: {
     fontSize: 18,
@@ -141,7 +215,7 @@ const styles = StyleSheet.create({
     right: 20,
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 30,
     backgroundColor: '#0A0A0A',
     alignItems: 'center',
     justifyContent: 'center',
@@ -156,8 +230,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 45, // Added padding to the top to center the QR code better
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
+  },
+  shareIcon: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
   },
   closeIcon: {
     position: 'absolute',

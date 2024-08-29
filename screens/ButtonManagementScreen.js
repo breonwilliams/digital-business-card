@@ -159,12 +159,13 @@ const styles = StyleSheet.create({
   buttonItem: {
     padding: 15,
     backgroundColor: '#fff',
-    borderRadius: 6,
+    borderRadius: 8,
     marginBottom: 10,
   },
   qrButton: {
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 23,
+    borderRadius: 8,
     backgroundColor: '#0A0A0A',
     borderColor: '#0A0A0A',
     borderWidth: 1,
@@ -173,6 +174,7 @@ const styles = StyleSheet.create({
   },
   qrButtonText: {
     color: '#f3f5f7',
+    fontSize: 16,
   },
   disabledButton: {
     opacity: 0.7,
@@ -183,8 +185,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   actionButton: {
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 13,
+    paddingHorizontal: 23,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#0A0A0A',
     backgroundColor: '#fff',
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#0A0A0A',
-    fontSize: 14,
+    fontSize: 16,
   },
   reorderActions: {
     flexDirection: 'row',
@@ -214,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 40,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 8,
   },
   closeIcon: {
     position: 'absolute',
@@ -228,14 +231,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    height: 40,
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     marginBottom: 20,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
     color: '#181818',
+    fontSize: 16,
   },
   modalButtons: {
     flexDirection: 'row',
