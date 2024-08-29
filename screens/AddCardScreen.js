@@ -3,9 +3,10 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
 export default function AddCardScreen({ navigation, onAddCard }) {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
 
   const handleAddCard = () => {
-    const newCard = { title, buttons: [] };
+    const newCard = { title, description, buttons: [] };
     onAddCard(newCard);
     navigation.navigate('Profile'); // Navigate back to the Profile screen after adding the card
   };
@@ -18,6 +19,14 @@ export default function AddCardScreen({ navigation, onAddCard }) {
         placeholder="Enter card title"
         value={title}
         onChangeText={setTitle}
+      />
+      <Text style={styles.label}>Card Description:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter card description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
       />
       <Button title="Add Card" onPress={handleAddCard} />
     </View>

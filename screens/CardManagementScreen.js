@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Button, Modal, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Modal, TextInput, Alert } from 'react-native';
 
-export default function CardManagementScreen({ navigation, cards, onDeleteCard, onEditCard }) {
+export default function CardManagementScreen({ navigation, cards, onDeleteCard, onEditCard, onReorderCard }) {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
 
   const handleEditPress = (card) => {
     setSelectedCard(card);
     setNewTitle(card.title);
+    setNewDescription(card.description || '');
     setModalVisible(true);
   };
 
   const handleSaveTitle = () => {
     if (selectedCard) {
-      onEditCard({ ...selectedCard, title: newTitle });
+      onEditCard({ ...selectedCard, title: newTitle, description: newDescription });
       setModalVisible(false);
     }
+  };
+
+  const handleDeletePress = (cardId) => {
+    Alert.alert(
+      "Delete Card",
+      "Are you sure you want to delete this card?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => {},
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: () => onDeleteCard(cardId),
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const moveCardUp = (index) => {
+    if (index === 0) return;
+    const updatedCards = [...cards];
+    const temp = updatedCards[index - 1];
+    updatedCards[index - 1] = updatedCards[index];
+    updatedCards[index] = temp;
+    onReorderCard(updatedCards);
+  };
+
+  const moveCardDown = (index) => {
+    if (index === cards.length - 1) return;
+    const updatedCards = [...cards];
+    const temp = updatedCards[index + 1];
+    updatedCards[index + 1] = updatedCards[index];
+    updatedCards[index] = temp;
+    onReorderCard(updatedCards);
   };
 
   return (
@@ -24,36 +64,43 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{item.title}</Text>
+            {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
             <TouchableOpacity
-              style={styles.viewButton}
-              onPress={() => navigation.navigate('CardDetail', { cardId: item.id })}
+              style={[styles.qrButton, styles.disabledButton]}
+              disabled={true} // Make the "View Buttons" button non-clickable
             >
-              <Text style={styles.buttonText}>View Buttons</Text>
+              <Text style={styles.qrButtonText}>View Buttons</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => handleEditPress(item)}
-            >
-              <Text style={styles.buttonText}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => onDeleteCard(item.id)}
-            >
-              <Text style={styles.buttonText}>Delete</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonActions}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleEditPress(item)}
+              >
+                <Text style={styles.buttonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleDeletePress(item.id)}
+              >
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+              <View style={styles.reorderActions}>
+                <TouchableOpacity onPress={() => moveCardUp(index)}>
+                  <Text style={styles.reorderText}>↑</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => moveCardDown(index)}>
+                  <Text style={styles.reorderText}>↓</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
       />
-      <Button
-        title="Add New Card"
-        onPress={() => navigation.navigate('AddCard')}
-      />
 
-      {/* Modal for Editing Card Title */}
+      {/* Modal for Editing Card Title and Description */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
@@ -61,16 +108,27 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Card Title</Text>
+            <Text style={styles.modalTitle}>Edit Card</Text>
             <TextInput
               style={styles.input}
               value={newTitle}
               onChangeText={setNewTitle}
               placeholder="Enter new title"
             />
+            <TextInput
+              style={styles.input}
+              value={newDescription}
+              onChangeText={setNewDescription}
+              placeholder="Enter new description"
+              multiline
+            />
             <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
-              <Button title="Save" onPress={handleSaveTitle} />
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveTitle}>
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -83,39 +141,65 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#f3f5f7',
   },
   card: {
     padding: 15,
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+    borderRadius: 6,
     marginBottom: 10,
   },
   cardTitle: {
     fontSize: 18,
     color: '#333',
+    marginBottom: 5,
   },
-  viewButton: {
-    backgroundColor: '#1E90FF',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+  cardDescription: {
+    fontSize: 14,
+    color: '#777777',
+    marginBottom: 10,
   },
-  editButton: {
-    backgroundColor: '#FFD700',
+  qrButton: {
     padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    borderRadius: 6,
+    backgroundColor: '#0A0A0A',
+    borderColor: '#0A0A0A',
+    borderWidth: 1,
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  deleteButton: {
-    backgroundColor: '#f44336',
+  qrButtonText: {
+    color: '#f3f5f7',
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  buttonActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  actionButton: {
     padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#0A0A0A',
+    backgroundColor: '#fff',
+    flex: 1,
+    alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#0A0A0A',
     fontSize: 14,
+  },
+  reorderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  reorderText: {
+    fontSize: 20,
+    color: '#0A0A0A',
   },
   modalContainer: {
     flex: 1,
@@ -126,12 +210,13 @@ const styles = StyleSheet.create({
   modalContent: {
     width: 300,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 10,
   },
   modalTitle: {
     fontSize: 18,
     marginBottom: 10,
+    color: '#181818',
   },
   input: {
     height: 40,
@@ -143,5 +228,10 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  modalButtonText: {
+    color: '#0A0A0A',
+    fontSize: 16,
+    padding: 10,
   },
 });

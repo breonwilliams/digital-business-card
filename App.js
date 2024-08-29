@@ -6,6 +6,7 @@ import CardDetailScreen from './screens/CardDetailScreen';
 import AddButtonScreen from './screens/AddButtonScreen';
 import AddCardScreen from './screens/AddCardScreen';
 import QRCodeScreen from './screens/QRCodeScreen';
+import CardManagementScreen from './screens/CardManagementScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -78,7 +79,7 @@ export default function App() {
   const addCard = (newCard) => {
     setCards([...cards, { ...newCard, id: (cards.length + 1).toString(), description: newCard.description }]);
   };
-  
+
   const editCard = (editedCard) => {
     setCards(cards.map(card =>
       card.id === editedCard.id
@@ -89,6 +90,10 @@ export default function App() {
 
   const deleteCard = (id) => {
     setCards(cards.filter(card => card.id !== id));
+  };
+
+  const onReorderCard = (newCardOrder) => {
+    setCards(newCardOrder);
   };
 
   return (
@@ -113,6 +118,17 @@ export default function App() {
               onDeleteButton={deleteButtonInCard}
               onIncrementScanCount={incrementScanCount} // Pass the scan counter increment function
               cards={cards}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="CardManagement">
+          {props => (
+            <CardManagementScreen
+              {...props}
+              cards={cards}
+              onEditCard={editCard}
+              onDeleteCard={deleteCard}
+              onReorderCard={onReorderCard}  // Pass the reorder function here
             />
           )}
         </Stack.Screen>

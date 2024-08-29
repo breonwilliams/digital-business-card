@@ -1,26 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Button, Modal, TextInput } from 'react-native';
+import React, { useLayoutEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function ProfileScreen({ navigation, cards, onDeleteCard, onEditCard }) {
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
+export default function ProfileScreen({ navigation, cards }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleEditPress = (card) => {
-    setSelectedCard(card);
-    setNewTitle(card.title);
-    setNewDescription(card.description);
-    setModalVisible(true);
-  };
-
-  const handleSaveTitle = () => {
-    if (selectedCard) {
-      onEditCard({ ...selectedCard, title: newTitle, description: newDescription });
-      setModalVisible(false);
-    }
-  };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('CardManagement')}>
+          <Ionicons name="pencil" size={24} color="#0A0A0A" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const filteredCards = cards.filter(card => 
     card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -43,62 +36,25 @@ export default function ProfileScreen({ navigation, cards, onDeleteCard, onEditC
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{item.title}</Text>
             {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
-            <TouchableOpacity
-              style={styles.qrButton}
-              onPress={() => navigation.navigate('CardDetail', { cardId: item.id })}
-            >
-              <Text style={styles.qrButtonText}>View Buttons</Text>
-            </TouchableOpacity>
-            <View style={styles.buttonActions}>
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => handleEditPress(item)}
+                onPress={() => navigation.navigate('CardDetail', { cardId: item.id })}
               >
-                <Text style={styles.buttonText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => onDeleteCard(item.id)}
-              >
-                <Text style={styles.buttonText}>Delete</Text>
+                <Text style={styles.buttonText}>View Buttons</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
-      <Button
-        title="Add New Card"
-        onPress={() => navigation.navigate('AddCard')}
-        color="#181818"
-      />
 
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
+      {/* Add Card Button */}
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => navigation.navigate('AddCard')}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Card Title</Text>
-            <TextInput
-              style={styles.input}
-              value={newTitle}
-              onChangeText={setNewTitle}
-              placeholder="Enter new title"
-            />
-            <TextInput
-              style={styles.input}
-              value={newDescription}
-              onChangeText={setNewDescription}
-              placeholder="Enter new description"
-            />
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setModalVisible(false)} color="#181818" />
-              <Button title="Save" onPress={handleSaveTitle} color="#181818" />
-            </View>
-          </View>
-        </View>
-      </Modal>
+        <Ionicons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -134,62 +90,34 @@ const styles = StyleSheet.create({
     color: '#777777',
     marginBottom: 10,
   },
-  qrButton: {
-    padding: 10,
-    borderRadius: 6,
-    backgroundColor: '#0A0A0A',
-    borderColor: '#0A0A0A',
-    borderWidth: 1,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  qrButtonText: {
-    color: '#f3f5f7',
-  },
-  buttonActions: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
   },
   actionButton: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#777777',
-    backgroundColor: 'transparent',
+    borderColor: '#0A0A0A',
+    backgroundColor: '#0A0A0A',
     flex: 1,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#181818',
+    color: '#f3f5f7',
     fontSize: 14,
   },
-  modalContainer: {
-    flex: 1,
+  addButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#0A0A0A',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 18,
-    marginBottom: 10,
-    color: '#181818',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
 });
