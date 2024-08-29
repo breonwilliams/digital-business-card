@@ -7,6 +7,7 @@ import AddButtonScreen from './screens/AddButtonScreen';
 import AddCardScreen from './screens/AddCardScreen';
 import QRCodeScreen from './screens/QRCodeScreen';
 import CardManagementScreen from './screens/CardManagementScreen';
+import ButtonManagementScreen from './screens/ButtonManagementScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -129,6 +130,22 @@ export default function App() {
               onEditCard={editCard}
               onDeleteCard={deleteCard}
               onReorderCard={onReorderCard}  // Pass the reorder function here
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="ButtonManagement">
+          {props => (
+            <ButtonManagementScreen
+              {...props}
+              cards={cards}
+              onEditButton={editButtonInCard}
+              onDeleteButton={deleteButtonInCard}
+              onReorderButton={(cardId, updatedButtons) => {
+                const updatedCards = cards.map(card =>
+                  card.id === cardId ? { ...card, buttons: updatedButtons } : card
+                );
+                setCards(updatedCards);
+              }}
             />
           )}
         </Stack.Screen>
