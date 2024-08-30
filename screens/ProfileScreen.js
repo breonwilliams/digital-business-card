@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ProfileScreen({ navigation, cards }) {
@@ -53,10 +53,12 @@ export default function ProfileScreen({ navigation, cards }) {
         </View>
       ) : (
         <FlatList
+          key={cards.length} // Forces re-render when cards array length changes
           data={filteredCards}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.card}>
+              {item.image && <Image source={{ uri: item.image }} style={styles.cardImage} />}
               <Text style={styles.cardTitle}>{item.title}</Text>
               {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
               <View style={styles.buttonContainer}>
@@ -128,6 +130,13 @@ const styles = StyleSheet.create({
   card: {
     padding: 15,
     backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  cardImage: {
+    width: '100%',
+    height: undefined,
+    aspectRatio: 1.91,
     borderRadius: 8,
     marginBottom: 10,
   },

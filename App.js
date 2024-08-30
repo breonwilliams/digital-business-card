@@ -84,7 +84,12 @@ export default function App() {
   const editCard = (editedCard) => {
     setCards(cards.map(card =>
       card.id === editedCard.id
-        ? { ...card, title: editedCard.title, description: editedCard.description }
+        ? { 
+            ...card, 
+            title: editedCard.title, 
+            description: editedCard.description,
+            image: editedCard.image // Ensure the image is updated
+          }
         : card
     ));
   };

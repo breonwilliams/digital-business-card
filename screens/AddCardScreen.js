@@ -1,12 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export default function AddCardScreen({ navigation, onAddCard }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [image, setImage] = useState(null);
+
+  const pickImage = async () => {
+    // Request permission to access photos
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'We need access to your camera roll to choose an image.');
+      return;
+    }
+
+    // Let the user pick an image from their library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [191, 100], // 1.91:1 aspect ratio
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Resize the image to the desired aspect ratio
+      const manipResult = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }], // Resize to maintain the aspect ratio
+        { compress: 1, format: SaveFormat.JPEG }
+      );
+      setImage(manipResult.uri);
+    }
+  };
 
   const handleAddCard = () => {
-    const newCard = { title, description, buttons: [] };
+    const newCard = { title, description, image, buttons: [] };
     onAddCard(newCard);
     navigation.navigate('Profile'); // Navigate back to the Profile screen after adding the card
   };
@@ -29,6 +59,14 @@ export default function AddCardScreen({ navigation, onAddCard }) {
         value={description}
         onChangeText={setDescription}
       />
+
+      <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+        {image ? (
+          <Image source={{ uri: image }} style={styles.previewImage} />
+        ) : (
+          <Text style={styles.imagePickerText}>Pick an Image</Text>
+        )}
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.addButton} onPress={handleAddCard}>
         <Text style={styles.addButtonText}>Add Card</Text>
@@ -58,6 +96,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     color: '#181818',
     fontSize: 16,
+  },
+  imagePicker: {
+    width: '100%',
+    aspectRatio: 1.91 / 1, // Maintain the 1.91:1 aspect ratio
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  imagePickerText: {
+    color: '#777',
+    fontSize: 16,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+    resizeMode: 'cover',
   },
   addButton: {
     paddingVertical: 13,

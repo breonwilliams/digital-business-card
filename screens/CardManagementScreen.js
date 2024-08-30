@@ -1,46 +1,68 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Modal, TextInput, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export default function CardManagementScreen({ navigation, cards, onDeleteCard, onEditCard, onReorderCard }) {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
+  const [newImage, setNewImage] = useState(null);
 
   const handleEditPress = (card) => {
+    console.log("Editing card:", card); // Debugging line
     setSelectedCard(card);
     setNewTitle(card.title);
     setNewDescription(card.description || '');
+    setNewImage(card.image || null);
     setModalVisible(true);
   };
 
   const handleSaveTitle = () => {
     if (selectedCard) {
-      onEditCard({ ...selectedCard, title: newTitle, description: newDescription });
+      const updatedCard = {
+        ...selectedCard,
+        title: newTitle,
+        description: newDescription,
+        image: newImage,  // Ensure this updates the image
+      };
+      console.log("Saving card with updated info:", updatedCard); // Debugging line
+      onEditCard(updatedCard); // Call the function to update the parent state
       setModalVisible(false);
     }
   };
 
-  const handleDeletePress = (cardId) => {
-    Alert.alert(
-      "Delete Card",
-      "Are you sure you want to delete this card?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => {},
-          style: "cancel"
-        },
-        {
-          text: "Delete",
-          onPress: () => onDeleteCard(cardId),
-          style: "destructive"
-        }
-      ],
-      { cancelable: true }
-    );
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'We need access to your camera roll to choose an image.');
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [191, 100], // 1.91:1 aspect ratio
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const manipResult = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }],
+        { compress: 1, format: SaveFormat.JPEG }
+      );
+      console.log("Picked image:", manipResult.uri); // Debugging line
+      setNewImage(manipResult.uri);
+    }
+  };
+
+  const handleDeleteImage = () => {
+    console.log("Deleting image"); // Debugging line
+    setNewImage(null);
   };
 
   const moveCardUp = (index) => {
@@ -61,6 +83,18 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
     onReorderCard(updatedCards);
   };
 
+  const handleDeletePress = (cardId) => {
+    Alert.alert(
+      "Delete Card",
+      "Are you sure you want to delete this card?",
+      [
+        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        { text: "Delete", onPress: () => onDeleteCard(cardId), style: "destructive" },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -68,11 +102,12 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
           <View style={styles.card}>
+            {item.image && <Image source={{ uri: item.image }} style={styles.cardImage} />}
             <Text style={styles.cardTitle}>{item.title}</Text>
             {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
             <TouchableOpacity
               style={[styles.qrButton, styles.disabledButton]}
-              disabled={true} // Make the "View Buttons" button non-clickable
+              disabled={true}
             >
               <Text style={styles.qrButtonText}>View Buttons</Text>
             </TouchableOpacity>
@@ -102,7 +137,6 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
         )}
       />
 
-      {/* Modal for Editing Card Title and Description */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -134,6 +168,22 @@ export default function CardManagementScreen({ navigation, cards, onDeleteCard, 
               placeholder="Enter new description"
               placeholderTextColor="#777"
             />
+
+            <View style={styles.imagePicker}>
+              {newImage ? (
+                <View style={styles.imageContainer}>
+                  <Image source={{ uri: newImage }} style={styles.previewImage} />
+                  <TouchableOpacity style={styles.deleteImageButton} onPress={handleDeleteImage}>
+                    <Ionicons name="trash" size={24} color="#f00" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                  <Text style={styles.imagePickerText}>Pick an Image</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
@@ -240,13 +290,42 @@ const styles = StyleSheet.create({
     color: '#181818',
   },
   input: {
-    height: 50, // Set the height for both title and description
+    height: 50, 
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
     paddingLeft: 10,
     marginBottom: 20,
     backgroundColor: '#fff',
+    fontSize: 16,
+  },
+  imagePicker: {
+    marginBottom: 20,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    aspectRatio: 1.91,
+    borderRadius: 8,
+  },
+  deleteImageButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 20,
+    padding: 5,
+  },
+  imagePickerButton: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+  },
+  imagePickerText: {
+    color: '#f3f5f7',
     fontSize: 16,
   },
   modalButtons: {
@@ -257,5 +336,11 @@ const styles = StyleSheet.create({
     color: '#0A0A0A',
     fontSize: 16,
     padding: 10,
+  },
+  cardImage: {
+    width: '100%',
+    aspectRatio: 1.91,
+    borderRadius: 8,
+    marginBottom: 10,
   },
 });
